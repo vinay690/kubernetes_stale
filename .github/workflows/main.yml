@@ -23,14 +23,16 @@ jobs:
       run: |
         cd $GITHUB_WORKSPACE
         inactive_days=${{ github.event.inputs.inactive-days }}
+        
  
         for branch in $(git for-each-ref --format='%(refname:short)' refs/remotes/origin | grep -v '^origin/release'); do
           last_commit_info=$(git log -n 1 --format='%ct %an' $branch)
+          owner=$(git log --reverse --pretty=%an $branch | head -n 1)
           last_commit_date=$(echo $last_commit_info | awk '{print $1}')
           committer_name=$(echo $last_commit_info | awk '{print $2}')
           days_inactive=$(( ( $(date +%s) - last_commit_date) / 86400 ))
           
           if [ $days_inactive -gt $inactive_days ]; then
-            echo "Inactive branch: $branch (Last commit by $committer_name $days_inactive days ago)"
+            echo "Inactive branch: $branch (Owner is $owner $days_inactive days ago)"
           fi
         done
